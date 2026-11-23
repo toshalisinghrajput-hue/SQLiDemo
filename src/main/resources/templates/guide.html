@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SQL Injection Guide</title>
+	<style>
+		:root { --ink: #202124; --muted: #6b7078; --panel: #fff; --surface: #eef0f2; --line: #d9dcdf; --accent: #4b5563; --warning: #a16207; }
+		* { box-sizing: border-box; }
+		body { margin: 0; font-family: Arial, sans-serif; color: var(--ink); background: var(--surface); line-height: 1.65; }
+		header { background: #292b2f; color: white; padding: 22px 7%; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+		.brand { display: flex; align-items: center; gap: 13px; }
+		.brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid #777; border-radius: 9px; font-weight: bold; color: #e5e7eb; }
+		header h1 { margin: 0; font-size: 1.35rem; letter-spacing: .3px; color: #e5e7eb; }
+		header p { margin: 3px 0 0; color: #b9bdc4; font-size: .9rem; }
+		.header-label { color: #c9cdd2; font-size: .8rem; text-transform: uppercase; letter-spacing: 1.5px; }
+		main { max-width: 1120px; margin: 0 auto; padding: 48px 24px 55px; }
+		.hero { margin-bottom: 32px; }
+		.eyebrow { color: var(--muted); text-transform: uppercase; letter-spacing: 2px; font-size: .75rem; font-weight: bold; }
+		.hero h2 { margin: 8px 0; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -1px; }
+		.hero p { max-width: 650px; color: var(--muted); margin: 0; font-size: 1.05rem; }
+		.content-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+		section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 26px; box-shadow: 0 5px 16px #25282d0b; }
+		section.wide { grid-column: 1 / -1; }
+		h3 { margin: 0 0 12px; font-size: 1.2rem; }
+		.section-intro { color: var(--muted); margin-top: -4px; }
+		.notice { border-left: 4px solid var(--warning); background: #fff9eb; padding: 14px 17px; border-radius: 5px; color: #59420d; }
+		ul, ol { padding-left: 23px; margin-bottom: 0; } li { margin: 9px 0; }
+		.steps { counter-reset: steps; list-style: none; padding-left: 0; }
+		.steps li { counter-increment: steps; display: flex; gap: 13px; }
+		.steps li::before { content: counter(steps); flex: 0 0 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; background: #e4e6e8; color: #41454b; font-weight: bold; font-size: .85rem; }
+		.button { display: inline-block; margin-top: 24px; padding: 11px 20px; color: white; background: #34373b; border-radius: 6px; text-decoration: none; font-weight: bold; transition: background .2s, transform .2s; }
+		.button:hover { background: #17191b; transform: translateY(-1px); }
+		footer { text-align: center; color: var(--muted); border-top: 1px solid var(--line); padding: 22px; font-size: .9rem; }
+		@media (max-width: 700px) { header { padding: 18px 24px; } .header-label { display: none; } main { padding-top: 32px; } .content-grid { grid-template-columns: 1fr; } section.wide { grid-column: auto; } }
+	</style>
+</head>
+<body>
+	<header>
+		<div class="brand"><div class="brand-mark">SiD</div><div><a th:href="@{/}"><h1>SQLiDemo</h1></a><p>Security learning dashboard</p></div></div>
+		<div class="header-label">Learn Before You Test</div>
+	</header>
+
+	<main>
+		<div class="hero"><div class="eyebrow">Security fundamentals</div><h2>SQL Injection Guide</h2><p>Understand the vulnerability, explore the demonstration, and learn how secure queries prevent SQL injection.</p></div>
+		<div class="content-grid">
+		<section class="wide">
+			<h3>What is SQL injection?</h3>
+			<p>SQL injection (SQLi) is a security vulnerability that occurs when untrusted input is inserted into a database query without proper protection. An attacker may alter the intended query, potentially accessing or changing data.</p>
+			<div class="notice"><strong>Use responsibly:</strong> This demo is for education only. Test only within this application or on systems you own or have explicit permission to assess. Never enter real credentials or personal data.</div>
+		</section>
+
+		<section>
+            
+			<h3>Vulnerable VS Secure</h3>
+            <h4>Vulnerable Approach</h4>
+            <p>In a vulnerable implementation, user input is directly concatenated into SQL statements. This allows attackers to manipulate the query structure.</p>
+            <pre><code>String query = "SELECT * FROM users<br> WHERE username = '" + userInput + "'";</code></pre>
+            <p>For example, if <code>userInput</code> is concatenated with <code>[' OR '1'='1]</code> or <br><code>[' #]</code>, the query becomes:</p>
+			<pre><code>SELECT * FROM users WHERE username = '' OR '1'='1';</code></pre>
+            <h4>Secure Approach</h4>
+            <p>In a secure implementation, prepared statements or parameterized queries are used. This ensures that user input is treated as data, not executable code.</p>
+            <pre><code>PreparedStatement stmt = connection.prepareStatement<br>("SELECT * FROM users WHERE username = ?");</code></pre>
+			<p>Here, the <code>?</code> placeholder is replaced with the user input in a safe manner, preventing SQL injection.</p>
+		</section>
+
+		<section>
+			<h3>How to use the demo</h3>
+			<ol class="steps">
+				<li>Return to the home page using the button below.</li>
+				<li>Click the 'Register' at top right in navigation or 'Create Account' at the bottom of the page.</li>
+				<li>Enter the dummy credentials in the provided form fields like Username, Email, and Password.</li>
+				<li>Click the 'Register' button or 'sign in here' (if you already created an account earlier).</li>
+				<li>After successful registration, you can explore both the secure and the vulnerable versions by changing the selection of radio buttons in the login page.</li>
+				<li>Try entering both the correct and incorrect credentials in both the secure and vulnerable versions one after another to test.</li>
+				<li>Then use the query concatenation in the Email Field(see code in left), you may enter any letters in password, select the vulnerable radio button and login.</li>
+			</ol>
+			<p>See the difference? One can login in the same dashboard even after writing a wrong password using SQL injection after the Email.</p>
+			<a class="button" th:href="@{/}">← Back to Home</a>
+		</section>
+
+		<section class="wide">
+			<h3>How to prevent SQL injection</h3>
+			<ul>
+				<li>Use prepared statements or parameterized queries.</li>
+				<li>Validate input with allowlists and appropriate type checks.</li>
+				<li>Apply least-privilege permissions to database accounts.</li>
+				<li>Keep frameworks, drivers, and database software updated.</li>
+				<li>Log and monitor suspicious database activity without exposing secrets.</li>
+			</ul>
+		</section>
+		</div>
+	</main>
+	<footer>Educational content for authorized security testing.</footer>
+</body>
+</html>
+

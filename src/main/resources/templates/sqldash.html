@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SQLiDemo | Dashboard</title>
+	<style>
+		:root { --bg:#eef0f2; --panel:#fff; --dark:#252a30; --muted:#6d747c; --line:#dce0e4; --accent:#68737d; --shadow:0 8px 24px rgba(28,34,40,.08); }
+		body.dark-theme { --bg:#171b1f; --panel:#252b31; --dark:#101317; --muted:#adb6bd; --line:#3b444c; --shadow:0 8px 24px rgba(0,0,0,.25); color:#e4e8eb; }
+		body.dark-theme h1, body.dark-theme h2, body.dark-theme h3, body.dark-theme .stat strong { color:#f1f3f4; }
+		body.dark-theme .detail, body.dark-theme button { color:#e1e5e8; background:#30373e; border-color:#4b555e; }
+		body.dark-theme .notice { color:#cbd2d7; background:#30373e; }
+		body.dark-theme figcaption { color:#cbd2d7; background:#30373e; }
+		* { box-sizing:border-box; }
+		body { margin:0; font-family:Inter,Segoe UI,Arial,sans-serif; color:#30363b; background:var(--bg); }
+		.layout { display:flex; min-height:100vh; }
+		aside { width:240px; padding:26px 16px; color:#dfe3e6; background:var(--dark); }
+		.brand { display:flex; gap:11px; align-items:center; padding:0 12px 30px; font-size:20px; font-weight:700; letter-spacing:.3px; }
+		.brand span { display:grid; place-items:center; width:34px; height:34px; border-radius:9px; color:#252a30; background:#c5cbd0; }
+		nav a { display:block; padding:12px 14px; margin:4px 0; border-radius:8px; color:#b8c0c6; text-decoration:none; font-size:14px; }
+		nav a.active, nav a:hover { color:#fff; background:#414950; }
+		.logout { width:100%; margin-top:16px; padding:12px 14px; border:0; border-radius:8px; color:#b8c0c6; background:transparent; text-align:left; font:inherit; cursor:pointer; }
+		.logout:hover { color:#fff; background:#414950; }
+		.side-note { margin:42px 10px 0; padding:15px; border:1px solid #485057; border-radius:9px; color:#aeb7bd; font-size:12px; line-height:1.5; }
+		main { flex:1; min-width:0; padding:27px clamp(18px,4vw,48px); }
+		.topbar { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:25px; }
+		h1 { margin:0 0 5px; font-size:27px; color:#252a30; } h2 { margin:0 0 17px; font-size:18px; } h3 { margin:0 0 7px; font-size:15px; }
+		.subtitle,.muted { color:var(--muted); font-size:13px; }
+		.user-chip { display:flex; align-items:center; gap:10px; padding:8px 13px; border:1px solid var(--line); border-radius:22px; background:var(--panel); font-size:13px; }
+		.user-menu { position:relative; }
+		.user-chip { cursor:pointer; }
+		.user-chip .arrow { transition:transform .2s ease; }
+		.user-menu.open .arrow { transform:rotate(180deg); }
+		.account-dropdown { display:none; position:absolute; z-index:10; top:calc(100% + 8px); right:0; min-width:190px; padding:7px; border:1px solid var(--line); border-radius:9px; background:var(--panel); box-shadow:var(--shadow); }
+		.user-menu.open .account-dropdown { display:block; }
+		.account-dropdown a, .account-dropdown button { display:block; width:100%; padding:9px 11px; border:0; border-radius:6px; color:var(--muted); background:transparent; text-align:left; text-decoration:none; font:inherit; font-size:13px; cursor:pointer; }
+		.account-dropdown a:hover, .account-dropdown button:hover { color:var(--dark); background:var(--bg); }
+		.avatar { display:grid; place-items:center; width:29px; height:29px; border-radius:50%; color:#fff; background:#77818a; font-weight:700; }
+		.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:15px; margin-bottom:22px; }
+		.card,.stat { background:var(--panel); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow); }
+		.stat { padding:18px; } .stat strong { display:block; margin-top:8px; color:#252a30; font-size:25px; } .stat small { color:var(--muted); font-size:12px; }
+		.grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; } .card { padding:22px; }
+		.details { display:grid; grid-template-columns:1fr 1fr; gap:13px; } .detail { padding:12px; border-radius:7px; background:#f4f5f6; } .detail label { display:block; color:var(--muted); font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }
+		.mode { display:inline-block; padding:4px 8px; border-radius:12px; color:#fff; background:#657d68; font-size:12px; font-weight:600; }
+		.tools { display:grid; grid-template-columns:repeat(2,1fr); gap:11px; } button { width:100%; padding:11px; border:1px solid #cdd2d6; border-radius:7px; color:#384047; background:#f4f5f6; cursor:pointer; } button:hover { background:#e4e7e9; }
+		.description { line-height:1.65; color:#596169; font-size:14px; } .notice { padding:12px 14px; border-left:3px solid #7b858e; background:#f1f3f4; color:#596169; font-size:13px; }
+		pre { overflow:auto; margin:0; padding:17px; border-radius:8px; color:#d7dde1; background:#24292e; font:12px/1.65 Consolas,monospace; } code .comment { color:#88939b; } code .key { color:#c4a7e7; } code .string { color:#b7d99c; }
+		.gallery { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; } .gallery figure { margin:0; overflow:hidden; border-radius:8px; background:#d9dde0; } .gallery img { display:block; width:100%; height:110px; object-fit:cover; filter:grayscale(1); } figcaption { padding:9px; color:#596169; background:#fff; font-size:12px; }
+		.footer { padding:5px 0 15px; text-align:center; color:#8a9197; font-size:12px; }
+		.site-logo{
+            position:absolute;
+            top:25px;
+            left:30px;
+            color:white;
+            text-decoration:none;
+            font-size:22px;
+            z-index:1000;
+        }
+        .site-logo:hover{
+            opacity:0.8;
+        }
+		@media (max-width:850px) { aside { width:190px; } .stats { grid-template-columns:repeat(2,1fr); } .grid { grid-template-columns:1fr; } }
+		@media (max-width:600px) { .layout { display:block; } aside { width:100%; padding:14px; } .brand { padding-bottom:12px; } nav { display:flex; overflow:auto; } nav a { white-space:nowrap; } .side-note { display:none; } main { padding:20px 14px; } .gallery { grid-template-columns:repeat(2,1fr); } }
+	</style>
+</head>
+<body>
+<div class="layout">
+	<aside>
+		<div class="brand"><a th:href="@{/}" class="site-logo">SQLiDemo</a></div>
+		<nav>
+			<a class="active" href="#overview">▦ &nbsp; Dashboard</a>
+			<a href="#profile">◎ &nbsp; User details</a>
+			<a href="#tools">⚙ &nbsp; Quick settings</a>
+			<a href="#working">▤ &nbsp; How it works</a>
+			<a href="#code">&lt;/&gt; &nbsp; Backend code</a>
+		</nav>
+		<form th:action="@{/logout}" method="post"><button class="logout" type="submit">⇥ &nbsp; Logout</button></form>
+		<div class="side-note"><strong>Learning mode</strong><br>Explore each section to understand query handling and safe database practices.</div>
+	</aside>
+	<main>
+		<header class="topbar" id="overview"><div><h1>Dashboard</h1><div class="subtitle">Welcome back, <span th:text="${user != null ? user.username : 'Learner'}">Jane Doe</span>. Continue your SQL injection learning journey.</div></div><div class="user-menu" id="userMenu"><div class="user-chip" role="button" tabindex="0" aria-expanded="false" onclick="toggleUserMenu()"><span class="avatar" th:text="${user != null ? user.initials : 'JD'}">JD</span> <span th:text="${user != null ? user.username : 'Jane Doe'}">Jane Doe</span> <span class="arrow">▾</span></div><div class="account-dropdown"><a href="#profile">View profile</a><a href="#tools">Account settings</a><a class="button" th:href="@{/logout}">Logout</a></div></div></header>
+		<section class="stats">
+			<div class="stat"><small>Lessons completed</small><strong th:text="${user != null ? user.lessonsCompleted : 0}">08</strong></div><div class="stat"><small>Practice attempts</small><strong th:text="${user != null ? user.practiceAttempts : 0}">24</strong></div><div class="stat"><small>Security score</small><strong th:text="${user != null ? user.securityScore + '%' : '0%'}">86%</strong></div><div class="stat"><small>Last activity</small><strong th:text="${user != null ? user.lastActivity : 'Not yet'}">Today</strong></div>
+		</section>
+		<div class="grid">
+			<section class="card" id="profile"><h2>User details</h2><div class="details"><div class="detail"><label>Full name</label><span th:text="${user != null ? user.username : 'Jane Doe'}">Jane Doe</span></div><div class="detail"><label>Email</label><span th:text="${user != null ? user.email : 'jane.doe@example.com'}">jane.doe@example.com</span></div><div class="detail"><label>Role</label><span th:text="${user != null ? user.role : 'Student / Learner'}">Student / Learner</span></div><div class="detail"><label>Member since</label><span th:text="${user != null ? user.memberSince : 'January 2025'}">January 2025</span></div><div class="detail"><label>Last login</label><span th:text="${user != null && user.lastLogin != null ? user.lastLogin : 'Not available'}">Today, 09:30</span></div><div class="detail"><label>Status / mode</label><span class="mode" th:text="${mode != null ? mode : 'Secure mode'}">Secure mode</span></div></div></section>
+			<section class="card" id="tools"><h2>Quick settings</h2><div class="tools"><button onclick="showSetting('Profile settings are ready to configure.')">Profile settings</button><button onclick="toggleNotifications(this)">Enable notifications</button><button onclick="showSetting('Security settings are ready to review.')">Security settings</button><button id="themeToggle" onclick="toggleTheme()">Switch to dark theme</button><button onclick="toggleFocusMode(this)">Focus mode</button><button onclick="toggleCompactMode(this)">Compact layout</button><button onclick="exportProgress()">Export progress</button><button onclick="resetPreferences()">Reset preferences</button></div></section>
+		</div>
+		<section class="card" id="working"><h2>About this SQLi website</h2><p class="description">SQLiDemo is an educational workspace that demonstrates how unsafe input can affect database queries. Use the practice area with sample data only, compare unsafe and parameterized approaches, and observe why validation and prepared statements matter.</p><div class="notice">⚠ This project is for authorized local learning. Never test systems or data without permission.</div></section>
+		<div class="grid" style="margin-top:20px"><section class="card" id="code"><h2>Backend code · illustrative example</h2><pre><code><span class="comment">// Prefer parameterized queries in production</span>
+<span class="key">String</span> sql = <span class="string">"SELECT * FROM users WHERE username = ?"</span>;
+PreparedStatement stmt = connection.prepareStatement(sql);
+stmt.setString(1, username);
+ResultSet results = stmt.executeQuery();</code></pre></section><section class="card"><h2>Recent activity</h2><p class="muted">✓ Completed: Parameterized queries <br><br>✓ Viewed: Input validation <br><br>• In progress: Secure authentication</p></section></div>
+		<section class="card"><h2>Learning snapshots</h2><div class="gallery"><figure><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=70" alt="Laptop showing code"><figcaption>Query practice</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=500&q=70" alt="Server equipment"><figcaption>Backend systems</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=500&q=70" alt="Cybersecurity lock"><figcaption>Secure design</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=500&q=70" alt="Digital network"><figcaption>Web architecture</figcaption></figure></div></section>
+		<div class="footer">SQLiDemo © 2025 · Built for responsible security education</div>
+	</main>
+</div>
+<script>
+	function toggleTheme() {
+		document.body.classList.toggle('dark-theme');
+		const dark = document.body.classList.contains('dark-theme');
+		document.getElementById('themeToggle').textContent = dark ? 'Switch to light theme' : 'Switch to dark theme';
+		localStorage.setItem('sqliDemoTheme', dark ? 'dark' : 'light');
+	}
+	function showSetting(message) {
+		alert(message);
+	}
+	function toggleNotifications(button) {
+		const enabled = button.dataset.enabled !== 'true';
+		button.dataset.enabled = enabled;
+		button.textContent = enabled ? 'Disable notifications' : 'Enable notifications';
+		localStorage.setItem('sqliDemoNotifications', enabled ? 'on' : 'off');
+	}
+	function toggleFocusMode(button) {
+		const enabled = document.body.classList.toggle('focus-mode');
+		button.textContent = enabled ? 'Exit focus mode' : 'Focus mode';
+		localStorage.setItem('sqliDemoFocus', enabled ? 'on' : 'off');
+	}
+	function toggleCompactMode(button) {
+		const enabled = document.body.classList.toggle('compact-mode');
+		button.textContent = enabled ? 'Normal layout' : 'Compact layout';
+		localStorage.setItem('sqliDemoCompact', enabled ? 'on' : 'off');
+	}
+	function exportProgress() {
+		const progress = 'SQLiDemo learning progress\nLessons completed: 08\nPractice attempts: 24\nSecurity score: 86%';
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(new Blob([progress], {type:'text/plain'}));
+		link.download = 'sqlidemo-progress.txt';
+		link.click();
+		URL.revokeObjectURL(link.href);
+	}
+	function resetPreferences() {
+		localStorage.removeItem('sqliDemoTheme');
+		localStorage.removeItem('sqliDemoNotifications');
+		localStorage.removeItem('sqliDemoFocus');
+		localStorage.removeItem('sqliDemoCompact');
+		document.body.classList.remove('dark-theme', 'focus-mode', 'compact-mode');
+		document.getElementById('themeToggle').textContent = 'Switch to dark theme';
+		location.reload();
+	}
+	function toggleUserMenu() {
+		const menu = document.getElementById('userMenu');
+		const open = menu.classList.toggle('open');
+		menu.querySelector('.user-chip').setAttribute('aria-expanded', open);
+	}
+	document.addEventListener('click', function(event) {
+		const menu = document.getElementById('userMenu');
+		if (!menu.contains(event.target)) menu.classList.remove('open');
+	});
+	if (localStorage.getItem('sqliDemoTheme') === 'dark') {
+		document.body.classList.add('dark-theme');
+		document.getElementById('themeToggle').textContent = 'Switch to light theme';
+	}
+	if (localStorage.getItem('sqliDemoFocus') === 'on') document.body.classList.add('focus-mode');
+	if (localStorage.getItem('sqliDemoCompact') === 'on') document.body.classList.add('compact-mode');
+	if (localStorage.getItem('sqliDemoNotifications') === 'on') {
+		const notifications = document.querySelector('.tools button:nth-child(2)');
+		notifications.dataset.enabled = 'true';
+		notifications.textContent = 'Disable notifications';
+	}
+</script>
+</body>
+</html>
